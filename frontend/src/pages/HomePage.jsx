@@ -1,14 +1,16 @@
 import {useEffect, useMemo, useState} from "react";
+import {useNavigate} from "react-router-dom";
 
 export default function HomePage() {
 
+    const navigate = useNavigate();
     const [lessons, setLessons] = useState([]);
     const [activeTab, setActiveTab] = useState(0);
 
     const types = ["INTRO", "BEGINNER", "INTERMEDIATE", "ADVANCED"];
 
     useEffect(() => {
-        fetch("http://localhost:8080/api/lessons")
+        fetch(`http://localhost:8080/api/lessons`)
             .then(res => res.json())
             .then(data => setLessons(data));
     }, []);
@@ -38,6 +40,8 @@ export default function HomePage() {
 
         <div>
 
+            <h1>HOME</h1>
+
             <div>
                 <button onClick={prev}>Prev</button>
                 <div>{activeType}</div>
@@ -60,7 +64,7 @@ export default function HomePage() {
                 {activeLessons.length === 0 ? (
                     <div>No lessons found for {activeType}</div>
                 ) : (activeLessons.map((lesson) =>
-                    <div key={lesson.id}>{lesson.title}</div>
+                    <button key={lesson.id} onClick={() => {console.log("clicked: ", lesson); navigate(`/lessons/${lesson.id}`)}}>{lesson.title}</button>
                 ))
                 }
 

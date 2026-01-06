@@ -1,36 +1,34 @@
 package com.rob.trafficapp.lessons;
 
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import tools.jackson.databind.ObjectMapper;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.io.InputStream;
 import java.util.List;
-import java.util.ArrayList;
-import java.io.File;
+
 
 @CrossOrigin(originPatterns = "http://localhost:51*")
 @RestController
 
 public class LessonController{
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final LessonService lessonService;
+
+    public LessonController(LessonService lessonService){
+        this.lessonService = lessonService;
+    }
 
     @GetMapping("/api/lessons")
     public List<Lesson> getLessons() throws Exception{
-        List<Lesson> lessons = new ArrayList<>();
+        return  lessonService.getAllLessons();
+    }
 
-        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-        Resource[] resources = resolver.getResources("classpath:lessons/*.json");
-
-        for (Resource resource : resources) {
-            try (InputStream inputStream = resource.getInputStream()) {
-            lessons.add(mapper.readValue(inputStream, Lesson.class));
-            }
+    @GetMapping("/api/lessons/{id}")
+    public Lesson getLessonById(@PathVariable String id) throws Exception{
+        Lesson lesson = lessonService.getLessonById(id);
+        if(lesson == null){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Lesson Not Found");
         }
-        return lessons;
+        return lesson;
     }
 }
