@@ -7,6 +7,11 @@ public class Block {
 
     public Block() {}
 
+    public Block(String id, String text) {
+        this.id = id;
+        this.text = text;
+    }
+
     public String getId() {
         return id;
     }

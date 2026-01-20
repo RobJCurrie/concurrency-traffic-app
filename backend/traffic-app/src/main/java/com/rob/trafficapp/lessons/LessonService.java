@@ -13,6 +13,8 @@ import java.util.List;
 public class LessonService {
 
     private final ObjectMapper mapper = new ObjectMapper();
+    private final DistractorBlockGenerator distractorBlockGenerator = new DistractorBlockGenerator();
+
 
     public List<Lesson> getAllLessons() throws Exception {
         List<Lesson> lessons = new ArrayList<>();
@@ -30,7 +32,29 @@ public class LessonService {
 
     public Lesson getLessonById(String lessonId) throws Exception {
 
-        return getAllLessons().stream().filter(lesson -> lesson.getId().equals(lessonId)).findFirst().orElse(null);
+        Lesson lessons = getAllLessons().stream()
+                .filter(lesson -> lesson.getId().equals(lessonId))
+                .findFirst()
+                .orElse(null);
 
+        applyBeginnerDistractors(lessons);
+
+        return lessons;
+
+
+    }
+
+    private void applyBeginnerDistractors(Lesson lesson) {
+
+        if (lesson == null) return;
+
+        if (!"beginner".equalsIgnoreCase(lesson.getLevel())) return;
+
+        Interactive interactive = lesson.getInteractive();
+        if (interactive == null || interactive.getBlocks() == null) return;
+
+        List<Block> distractors = distractorBlockGenerator.generateDistractorBlocks(interactive.getBlocks(),2);
+
+        interactive.setDistractors(distractors);
     }
 }

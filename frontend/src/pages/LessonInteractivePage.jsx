@@ -1,17 +1,18 @@
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import {useParams} from "react-router-dom";
 import {API_BASE_URL} from "../config/apiConfig.js";
 import NavigateButton from "../components/NavigateButton.jsx";
 import DraggableBlocks from "../components/DraggableBlocks.jsx";
 
 
+//Function that will shuffle the interactive blocks to a random order
 function shuffleBlocks(array) {
     const arr = [...array];
     for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+        [arr[i], arr[j]] = [arr[j], arr[i]];
     }
-    return array;
+    return arr;
 }
 
 export default function LessonInteractivePage() {
@@ -20,11 +21,31 @@ export default function LessonInteractivePage() {
 
     const [lesson, setLesson] = useState(null);
     const [blocks, setBlocks] = useState([]);
-    const [error, setError] = useState("");
-    const [loadingProblem, setLoadingProblem] = useState(true);
+    const [shuffledBlocks, setShuffledBlocks] = useState([]);
     const [currentOrder, setCurrentOrder] = useState([]);
 
+    const [isCorrect, setIsCorrect] = useState(null);
+    const [loadingProblem, setLoadingProblem] = useState(true);
+    const [error, setError] = useState("");
 
+    const checkAnswer = useCallback(() =>{
+        if (!blocks.length || !currentOrder.length) return null;
+
+        const correctIDs =  blocks.map((block) => block.id);
+
+        const currentIDs = (currentOrder)
+            .filter((block) => !String(block.id).startsWith("d"))
+            .map((block) => block.id);
+
+        return (
+            correctIDs.length === currentIDs.length &&
+            correctIDs.every((id, i) => id === currentIDs[i])
+        );
+    }, [blocks, currentOrder]);
+
+    useEffect(() => {
+        setIsCorrect(checkAnswer());
+    }, [checkAnswer]);
 
     useEffect(() => {
         async function loadInteractiveActivity(){
@@ -39,7 +60,16 @@ export default function LessonInteractivePage() {
                 setLesson(data);
 
                 const loadedBlocks = data?.interactive?.blocks || [];
-                setBlocks(shuffleBlocks(loadedBlocks))
+                const distractorBlocks = data?.interactive?.distractors || [];
+
+                const combined = [...loadedBlocks, ...distractorBlocks];
+                const shuffledBlocks = shuffleBlocks(combined);
+
+                setBlocks(loadedBlocks);
+                setShuffledBlocks(shuffledBlocks);
+
+                setCurrentOrder(shuffledBlocks);
+                setIsCorrect(null);
 
             }
             catch(err){
@@ -80,16 +110,17 @@ export default function LessonInteractivePage() {
             {/*Blocks*/ }
     <div className="p-6">
 
-        <DraggableBlocks blocks={blocks} onChange={setCurrentOrder} />
+        <DraggableBlocks blocks={shuffledBlocks} onChange={(order) => { setCurrentOrder(order); setIsCorrect(null);}}/>
     </div>
+
+
 
             {/* Footer */}
         <div className="p-6">
             <div>
-                <NavigateButton to={`/lessons/${lesson.id}/simulation`} label={`View Lesson Simulation`}/>
+                <NavigateButton to={`/lessons/${lesson.id}/simulation`} label={`View Lesson Simulation`} disabled={isCorrect !== true} />
             </div>
         </div>
-
         </div>
     );
 }
