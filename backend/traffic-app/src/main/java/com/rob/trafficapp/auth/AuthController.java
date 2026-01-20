@@ -3,7 +3,6 @@ package com.rob.trafficapp.auth;
 import org.apache.catalina.User;
 import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin(originPatterns = "http://localhost:51*")
 @RestController
 
 public class AuthController {

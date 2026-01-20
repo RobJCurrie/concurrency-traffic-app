@@ -1,9 +1,24 @@
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {data} from "autoprefixer";
 import {useNavigate} from "react-router-dom";
+import {API_BASE_URL} from "../config/apiConfig.js";
 
 
 export default function AuthPage() {
+
+    const [healthOK, setHealth] = useState(null);
+
+    useEffect(() => {
+        fetch(`${API_BASE_URL}/api/health`)
+            .then(res => {
+                if (!res.ok) throw new Error("Error fetching health.");
+                return res.text();
+                })
+            .then(() => setHealth(true))
+            .catch(() => setHealth(false));
+
+    }, []);
+
 
     const [mode, setMode] = useState("login");
     const [email, setEmail] = useState("");
@@ -13,8 +28,8 @@ export default function AuthPage() {
     async function handleSubmit() {
         const url =
             mode === "login"
-         ? "http://localhost:8080/api/auth/login"
-         : "http://localhost:8080/api/auth/signup";
+         ? `${API_BASE_URL}/api/auth/login`
+         : `${API_BASE_URL}/api/auth/signup`;
 
         const body = {email, password};
 
@@ -46,10 +61,12 @@ export default function AuthPage() {
 
         <div>
 
+
             <h1>{mode === "login" ? "Login" : "Sign Up"}</h1>
 
+
             {mode === "signup" && (
-                <div>
+                <div className="flex flex-col justify-center">
                     <input placeholder="Email Address" />
 
                     <input placeholder="Password" />
@@ -60,7 +77,7 @@ export default function AuthPage() {
             ) }
 
             {mode === "login" && (
-                <div>
+                <div className="flex flex-col justify-center">
                     <input placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} />
 
                     <input placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
@@ -71,22 +88,32 @@ export default function AuthPage() {
             ) }
 
 
-            <div>
+            <div className="p-6">
                 {mode === "login" ? (
                     <div>
                     <p>Don't have an account yet</p>
 
-                    <button onClick={() => setMode("signup")}>Signup</button>
+                    <button className="underline" onClick={() => setMode("signup")}>Signup</button>
                     </div>
                 ) : (
                     <div>
                     <p>Already have an account?</p>
 
-                    <button onClick={() => setMode("login")}>Login</button>
+                    <button className="underline" onClick={() => setMode("login")}>Login</button>
                     </div>
 
                     )}
             </div>
+
+
+            {healthOK === false && (
+                <p style={{color:"red"}}>Backend is offline</p>
+            )}
+
+            {healthOK === true && (
+                <p style={{color:"green"}}>Backend connected</p>
+            )}
+
         </div>
     )
 }

@@ -7,7 +7,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 
-@CrossOrigin(originPatterns = "http://localhost:51*")
 @RestController
 
 public class LessonController{
